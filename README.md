@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+Teste do Code Review Assistant
+=======
 # Plano de Estudo — Bolsa de IA (4 semanas)
 
 **Perfil:** iniciante total | **Prazo:** menos de 1 mês | **Prova exigida:** certificados (30h+) e portfólio de projetos
@@ -84,3 +87,4 @@ Cada semana combina 1 certificado + 1 projeto prático. Trabalhe os dois em para
 ## Observação importante
 
 Isso é uma exposição de superfície aos temas — suficiente para comprovar experiência inicial dentro do prazo que você tem, não domínio profundo. Se passar na seleção, o aprofundamento real vem depois, com a bolsa. Priorize entregar os projetos funcionando e bem documentados em vez de perfeitos.
+>>>>>>> 20b3ad5226fb01f15a867bf86ddd0ea3391d4284
