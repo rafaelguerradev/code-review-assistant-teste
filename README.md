@@ -1,4 +1,5 @@
-Teste do Code Review Assistant
+# Estou utilizando esse repositório para testar o webhook com github
+
 # Plano de Estudo — Bolsa de IA (4 semanas)
 
 **Perfil:** iniciante total | **Prazo:** menos de 1 mês | **Prova exigida:** certificados (30h+) e portfólio de projetos
