@@ -1,12 +1,6 @@
-# Agora esse é um teste para verificar o diff
-
-# Estou utilizando esse repositório para testar o webhook com github
-
-# Realizando mais um teste de PR
-
-# Teste novamente - link supabase
-
 # Plano de Estudo — Bolsa de IA (4 semanas)
+
+REMOVI AS LINHAS DESNECESSÁRIAS
 
 **Perfil:** iniciante total | **Prazo:** menos de 1 mês | **Prova exigida:** certificados (30h+) e portfólio de projetos
 
