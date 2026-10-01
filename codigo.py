@@ -1,5 +1,7 @@
+# Código que faz um print simples.
+
 def main():
-    print("Executando um código de teste para o code-review-assistant.")
+    print("Hello, World!")
 
 if __name__ == "__main__":
     main()
