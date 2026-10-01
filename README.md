@@ -1,88 +1,199 @@
-# Plano de Estudo — Bolsa de IA (4 semanas)
+# Code Review Assistant com IA
 
-REMOVI AS LINHAS DESNECESSÁRIAS
+Sistema que acompanha Pull Requests do GitHub, analisa as alterações de código usando um modelo de linguagem local e publica automaticamente uma revisão como comentário na PR.
 
-**Perfil:** iniciante total | **Prazo:** menos de 1 mês | **Prova exigida:** certificados (30h+) e portfólio de projetos
+## Sobre o projeto
 
-## Estratégia geral
+O Code Review Assistant recebe eventos de Pull Request via webhook do GitHub, busca o diff das alterações, envia o código para um modelo de linguagem local (Ollama/Qwen) e publica o resultado como comentário na PR. As análises são persistidas no Supabase e ficam acessíveis por um dashboard em React.
 
-Com menos de 1 mês, o objetivo **não é dominar tudo profundamente** — é construir **evidência concreta e defensável** nos tópicos exigidos:
-1. Certificados curtos, gratuitos e reconhecidos (30h+ cada, empilháveis)
-2. 3–4 mini-projetos de portfólio no GitHub, cada um cobrindo 1–2 tópicos do edital
-3. Documentação clara (README explicando o que foi feito, por quê, e o que foi aprendido)
+O projeto foi desenvolvido com foco em arquitetura robusta: processamento determinístico do diff, validação estrutural da resposta do LLM, idempotência no processamento e prevenção de comentários duplicados.
 
-Cada semana combina 1 certificado + 1 projeto prático. Trabalhe os dois em paralelo — o certificado dá a base teórica rápida, o projeto vira a prova prática.
+## Arquitetura
 
----
+```
+GitHub
+   ↓
+Webhook
+   ↓
+FastAPI
+   ↓
+GitHub API
+   ↓
+Diff Parser
+   ↓
+Ollama / Qwen
+   ↓
+Pydantic
+   ↓
+Supabase
+   ↓
+GitHub Comment
+   ↓
+React Dashboard
+```
 
-## Semana 1 — Fundamentos de ML + primeiro projeto supervisionado
+## Tecnologias
 
-**Certificado (escolha 1, ~10-15h):**
-- Google: "Machine Learning Crash Course" (gratuito, com certificado de conclusão)
-- Ou Coursera: "Machine Learning for All" / "Supervised Machine Learning" (Andrew Ng, financial aid disponível)
+**Backend**
+- Python 3.12+
+- FastAPI
+- httpx
+- Pydantic
+- supabase-py
 
-**Projeto de portfólio:**
-- Classificação supervisionada com Scikit-learn (ex: prever preço de imóvel, classificar espécies, detectar spam)
-- Use um dataset do Kaggle, documente: limpeza de dados → treino → métricas → conclusão
-- Suba no GitHub com README explicando o problema e a solução
+**Modelo de linguagem**
+- Ollama
+- Qwen 2.5 Coder 7B
 
-**Tópicos do edital cobertos:** ML, algoritmos supervisionados, Scikit-learn
+**Banco de dados**
+- Supabase (PostgreSQL)
 
----
+**Frontend**
+- React 19
+- Vite
 
-## Semana 2 — NLP + LLMs
+## Como funciona
 
-**Certificado (~10h):**
-- Hugging Face NLP Course (gratuito, módulos 1-3 já dão base sólida em transformers)
-- Ou curso curto de NLTK/spaCy no YouTube + certificado complementar (DataCamp/Coursera trial)
+1. Um evento `pull_request` chega via webhook do GitHub.
+2. A assinatura HMAC-SHA256 é validada.
+3. O processamento é delegado para uma background task.
+4. O sistema verifica se aquele PR + SHA já foi analisado (idempotência).
+5. O diff é buscado na GitHub API.
+6. Comentários são removidos e strings são mascaradas antes de enviar ao LLM.
+7. O diff formatado é enviado ao Ollama/Qwen com structured output via Pydantic.
+8. A localização dos problemas (arquivo e linha) é determinada deterministicamente pelo diff parser, não pelo LLM.
+9. O resultado é salvo no Supabase.
+10. Um comentário em Markdown é publicado na PR, com um marker HTML invisível para controle de idempotência.
+11. O dashboard em React consome a API do backend para exibir o histórico de análises.
 
-**Projeto de portfólio:**
-- Análise de sentimentos ou classificação de texto usando spaCy/NLTK ou a biblioteca `transformers` da Hugging Face
-- Ex: classificar reviews de produtos como positivo/negativo, ou resumir textos com um LLM pré-treinado
-- Documente as decisões técnicas (por que escolheu tal modelo/biblioteca)
+## Estrutura do projeto
 
-**Tópicos do edital cobertos:** NLP, LLMs, análise de sentimentos, classificação de texto, spaCy/NLTK/transformers
+```
+code-review-assistant/
+│
+├── app/
+│   ├── db.py                    # Persistência no Supabase
+│   ├── diff_parser.py           # Parser determinístico do diff
+│   ├── github_client.py         # Comunicação com a GitHub API
+│   ├── llm_client.py            # Ollama/Qwen e validação da resposta
+│   ├── main.py                  # FastAPI, webhook, endpoints da API
+│   ├── review_formatter.py      # Conversão da análise para Markdown
+│   ├── review_service.py        # Orquestração do pipeline
+│   │
+│   ├── test_diff_parser.py
+│   ├── test_github.py
+│   ├── test_github_comment.py
+│   ├── test_llm.py
+│   └── test_retry_idempotency.py
+│
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── services/
+│   ├── public/
+│   └── package.json
+│
+├── .env
+├── .env.example
+├── .gitignore
+└── README.md
+```
 
----
+## Configuração
 
-## Semana 3 — Deep Learning + Visão Computacional
+Copie o arquivo de exemplo e preencha as variáveis:
 
-**Certificado (~10-15h):**
-- TensorFlow: "Intro to TensorFlow for Deep Learning" (Udacity, gratuito)
-- Ou PyTorch: tutorial oficial + certificado de curso curto (freeCodeCamp tem um de PyTorch com certificado)
+```bash
+cp .env.example .env
+```
 
-**Projeto de portfólio:**
-- CNN simples para classificação de imagens (ex: MNIST, CIFAR-10, ou dataset próprio pequeno)
-- Se der tempo, adicione detecção de objetos básica (YOLO pré-treinado contando como "aplicação", não precisa treinar do zero)
+```env
+GITHUB_WEBHOOK_SECRET=   # segredo configurado no webhook do GitHub
+GITHUB_TOKEN=            # Personal Access Token com permissão Pull requests: Read and write
+SUPABASE_URL=            # URL do projeto no Supabase
+SUPABASE_SECRET_KEY=     # chave de serviço (service role key)
+```
 
-**Tópicos do edital cobertos:** DL, Visão Computacional, CNNs, TensorFlow/PyTorch
+O banco de dados requer duas tabelas no Supabase:
 
----
+**`pull_requests`** — com constraint `unique (repo_full_name, pr_number)`
 
-## Semana 4 — Ética/Vieses + Engenharia de Dados/MLOps + fechamento
+**`analises`** — com constraint `unique (pr_id, head_sha)` e campos:
+`id`, `pr_id`, `head_sha`, `resumo`, `problemas`, `nota_geral`, `status`, `criado_em`, `github_comment_id`, `github_comment_url`, `comentario_status`, `comentario_erro`
 
-**Certificado (~5-10h, mais leve para dar tempo de fechar o portfólio):**
-- Curso curto sobre ética em IA (ex: "AI Ethics" da LinkedIn Learning ou Coursera, geralmente curtos)
-- MLOps básico: "MLOps Fundamentals" (Google Cloud Skills Boost, gratuito, dá certificado)
+## Como executar
 
-**Projeto de portfólio (fechamento):**
-- Pequeno pipeline de dados: coleta → limpeza → transformação → análise (pode reaproveitar dataset de semanas anteriores, mas documentando o pipeline formalmente)
-- Escreva 1 texto curto (pode ser no README principal do seu GitHub ou um post no LinkedIn) discutindo vieses algorítmicos e privacidade de dados — isso cobre a parte "social/ética" do edital sem precisar de projeto técnico
+### Backend
 
-**Tópicos do edital cobertos:** vieses algorítmicos, privacidade de dados, impactos sociais, Data Engineering, MLOps
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 
-**Séries temporais / controle de sistemas dinâmicos / reforço:** com tempo tão curto, é o ponto de menor prioridade — se sobrar tempo, um mini-projeto simples de previsão de série temporal (ex: previsão de vendas com um modelo básico tipo ARIMA ou regressão) já é suficiente como evidência. Não é realista aprofundar em RL (reforço) em 4 semanas do zero — mencione conhecimento teórico básico se perguntado, mas não é prioridade de portfólio.
+uvicorn app.main:app --reload
+```
 
----
+O servidor sobe em `http://localhost:8000`.
 
-## Checklist final antes da inscrição
+### Ollama
 
-- [ ] Pelo menos 3 certificados de 30h+ (ou que somem isso), salvos em PDF
-- [ ] Repositório no GitHub organizado com 3-4 projetos, cada um com README
-- [ ] Perfil do GitHub/LinkedIn atualizado citando os projetos e certificados
-- [ ] Texto/reflexão sobre ética e vieses em IA, mesmo que curto
-- [ ] Revisar o edital novamente para confirmar que todos os documentos pedidos estão no formato aceito (declaração, certificado, portfólio, publicação)
+```bash
+ollama pull qwen2.5-coder:7b
+ollama serve
+```
 
-## Observação importante
+### Frontend
 
-Isso é uma exposição de superfície aos temas — suficiente para comprovar experiência inicial dentro do prazo que você tem, não domínio profundo. Se passar na seleção, o aprofundamento real vem depois, com a bolsa. Priorize entregar os projetos funcionando e bem documentados em vez de perfeitos.
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+O dashboard abre em `http://localhost:5173`.
+
+## Configuração do GitHub Webhook
+
+1. No repositório do GitHub, acesse **Settings → Webhooks → Add webhook**.
+2. Configure:
+   - **Payload URL:** URL pública do servidor (ex: via ngrok em desenvolvimento)
+   - **Content type:** `application/json`
+   - **Secret:** o mesmo valor de `GITHUB_WEBHOOK_SECRET`
+   - **Events:** selecione `Pull requests`
+3. Em desenvolvimento, use ngrok para expor o servidor local:
+
+```bash
+ngrok http 8000
+```
+
+## Testes
+
+Os testes unitários de idempotência e retry não dependem de serviços externos — GitHub API, Ollama e Supabase são mockados:
+
+```bash
+source .venv/bin/activate
+python -m unittest app.test_retry_idempotency -v
+```
+
+Os demais arquivos de teste (`test_github.py`, `test_llm.py`, `test_github_comment.py`) requerem serviços reais e são usados para validação manual do ambiente.
+
+## Limitações conhecidas
+
+A análise é realizada por um modelo de linguagem local e pode produzir falsos positivos ou falsos negativos. O sistema utiliza processamento determinístico do diff e validação estrutural da resposta para reduzir a dependência do modelo em informações como arquivo e linha.
+
+A proteção contra prompt injection também é uma camada de mitigação, não uma garantia de segurança absoluta.
+
+## Roadmap / trabalhos futuros
+
+- Comentários inline na PR (por arquivo e linha)
+- Feedback humano nas sugestões (👍 / 👎)
+- Métricas por categoria e severidade no dashboard
+- Histórico visual de evolução do score por commit
+- Observabilidade (tempo de processamento por etapa)
+- Testes de integração automatizados
+- Deploy em ambiente de produção
+- Avaliação quantitativa do modelo (precision, recall, falsos positivos)
+- Suporte a múltiplos repositórios e usuários
+- Migração de Personal Access Token para GitHub App
