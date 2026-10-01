@@ -1,6 +1,6 @@
 import asyncio
 
-from github_client import buscar_diff
+from app.github_client import buscar_diff
 
 
 async def main():
