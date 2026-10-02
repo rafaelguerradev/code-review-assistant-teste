@@ -18,6 +18,12 @@ import asyncio
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import os
+
+os.environ.setdefault("SUPABASE_URL", "https://example.supabase.co")
+os.environ.setdefault("SUPABASE_SECRET_KEY", "test-key")
+os.environ.setdefault("GITHUB_TOKEN", "test-token")
+
 
 # ---------------------------------------------------------------------------
 # Helpers
