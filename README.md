@@ -1,3 +1,5 @@
+# Fazendo teste de PR
+
 # Code Review Assistant com IA
 
 Sistema de revisão automática de Pull Requests do GitHub utilizando um modelo de linguagem local. O projeto recebe eventos via webhook, obtém o diff da Pull Request, estrutura as alterações, analisa o código com Ollama/Qwen, armazena o resultado no Supabase/PostgreSQL e publica automaticamente uma revisão como comentário na Pull Request.
